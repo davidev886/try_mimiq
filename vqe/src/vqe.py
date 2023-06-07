@@ -44,11 +44,13 @@ class VqeHardwareEfficient(object):
     def compute_energy_random_params(self, hamiltonian, nsamples=10000):
         conn = mc.MimiqConnection()
 
-        # create a token - first time only
-        # conn.savetoken()
+        # create/load a token
+        try:
+            conn.loadtoken(filepath="/Users/vodola/try_qperfect/vqe/qperfect.json")
+        except Exception as e:
+            conn.savetoken()
+            conn.loadtoken(filepath="/Users/vodola/try_qperfect/vqe/qperfect.json")
 
-        # load the saved token
-        conn.loadtoken(filepath="/Users/vodola/try_qperfect/vqe/qperfect.json")
         params = 2 * np.pi * np.random.random_sample((self.n_qubits, self.n_layers + 1))
         estimate_energy = 0.0
         for ham_term in hamiltonian:
