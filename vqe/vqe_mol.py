@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 from openfermion.transforms import get_fermion_operator, jordan_wigner
 from openfermion.chem import MolecularData
 from openfermionpyscf import run_pyscf
@@ -49,9 +50,16 @@ if __name__ == "__main__":
     # print(f"FCI energy: {molecule.fci_energy}")
     n_qubit = molecule.n_qubits
     n_electron = molecule.n_electrons
+    print("creating fermionic Hamiltonians - this can require time")
     fermionic_hamiltonian = get_fermion_operator(molecule.get_molecular_hamiltonian())
+    try:
+        with open(f'{system_label}.pickle', 'rb') as handle:
+            jw_hamiltonian = pickle.load(handle)
+    except:
+        jw_hamiltonian = jordan_wigner(fermionic_hamiltonian)
+        with open(f'{system_label}.pickle', 'wb') as handle:
+            pickle.dump(jw_hamiltonian, handle, protocol=pickle.HIGHEST_PROTOCOL)
     print("starting VQE")
-    jw_hamiltonian = jordan_wigner(fermionic_hamiltonian)
     vqe = VqeHardwareEfficient(n_qubits=n_qubit, n_layers=1, n_electrons=mol.nelec)
     random_energy = vqe.compute_energy_random_params(jw_hamiltonian)
     print(f"Energy with random VQE params: {random_energy}")
